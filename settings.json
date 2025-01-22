@@ -1,5 +1,5 @@
 {
-	"servicerestart":"service gitea restart",
+	"servicerestart":"service odoo restart",
 	"serviceget": "/usr/local/bin/pluginget",
 	"serviceset": "/usr/local/bin/pluginset",
 	"options": {
