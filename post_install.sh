@@ -42,7 +42,10 @@ echo "db_host = $DB_HOST" >> /root/odoo.conf
 echo "db_port = $DB_PORT" >> /root/odoo.conf
 echo "db_user =  $DB_USER" >> /root/odoo.conf
 echo "db_password = $DB_PASS" >> /root/odoo.conf
-echo "addons_path = /usr/local/lib/pyt" >> /root/odoo.conf
+echo "addons_path = /usr/local/lib/python3.11/site-packages/odoo/addons/" >> /root/odoo.conf
+
+mv /usr/local/etc/odoo/odoo.conf /usr/local/etc/odoo/odoo.conf.orig
+mv /root/odoo.conf /usr/local/etc/odoo/odoo.conf
 
 service odoo initdb
 
