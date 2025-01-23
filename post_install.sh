@@ -5,6 +5,7 @@ DB_USER="odoouser"
 DB="odoodb"
 DB_HOST="localhost"
 DB_PORT="5432"
+WEB_DB_MANAGER = false
 ODOO_ADDONS="/usr/local/lib/python3.11/site-packages/odoo/addons/"
 
 sysrc postgresql_enable=YES 2>/dev/null
@@ -45,6 +46,7 @@ echo "db_host = $DB_HOST" >> /root/odoo.conf
 echo "db_port = $DB_PORT" >> /root/odoo.conf
 echo "db_user =  $DB_USER" >> /root/odoo.conf
 echo "db_password = $DB_PASS" >> /root/odoo.conf
+echo "list_db = $WEB_DB_MANAGER" >> /root/odoo.conf
 echo ";addons_path = $ODOO_ADDONS" >> /root/odoo.conf
 
 # Backup original config and move new one
