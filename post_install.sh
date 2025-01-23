@@ -23,7 +23,7 @@ sleep 5
 
 # Save the config values
 echo "$DB" > /root/dbname
-echo "$USER" > /root/dbuser
+echo "$DB_USER" > /root/dbuser
 export LC_ALL=C
 cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1 > /root/dbpassword
 cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1 > /root/adimpassword
@@ -31,9 +31,9 @@ DB_PASS=`cat /root/dbpassword`
 PASS=`cat /root/adimpassword`
 
 # create db user
-psql -d template1 -U postgres -c "CREATE USER ${USER} CREATEDB SUPERUSER;" 2>/dev/null
+psql -d template1 -U postgres -c "CREATE USER ${DB_USER} CREATEDB SUPERUSER;" 2>/dev/null
 # Set a password on the postgres account
-psql -d template1 -U postgres -c "ALTER USER ${USER} IDENTIFIED WITH caching_sha2_password BY '${DB_PASS}';" 2>/dev/null
+psql -d template1 -U postgres -c "ALTER USER ${DB_USER} IDENTIFIED WITH caching_sha2_password BY '${DB_PASS}';" 2>/dev/null
 
 #Setting up odoo.conf
 echo "[options]" > /root/odoo.conf
