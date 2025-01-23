@@ -5,6 +5,7 @@ DB_USER="odoouser"
 DB="odoodb"
 DB_HOST="localhost"
 DB_PORT="5432"
+ODOO_ADDONS="/usr/local/lib/python3.11/site-packages/odoo/addons/"
 
 sysrc postgresql_enable=YES 2>/dev/null
 
@@ -12,6 +13,8 @@ sysrc odoo_enable=YES 2>/dev/null
 
 sysrc odoo_database="odoodb" 2>/dev/null
 sysrc odoo_datadir="/var/db/odoo" 2>/dev/null
+
+
 
 chmod 777 /tmp
 # Start the service
@@ -42,8 +45,9 @@ echo "db_host = $DB_HOST" >> /root/odoo.conf
 echo "db_port = $DB_PORT" >> /root/odoo.conf
 echo "db_user =  $DB_USER" >> /root/odoo.conf
 echo "db_password = $DB_PASS" >> /root/odoo.conf
-echo "addons_path = /usr/local/lib/python3.11/site-packages/odoo/addons/" >> /root/odoo.conf
+echo ";addons_path = $ODOO_ADDONS" >> /root/odoo.conf
 
+# Backup original config and move new one
 mv /usr/local/etc/odoo/odoo.conf /usr/local/etc/odoo/odoo.conf.orig
 mv /root/odoo.conf /usr/local/etc/odoo/odoo.conf
 
