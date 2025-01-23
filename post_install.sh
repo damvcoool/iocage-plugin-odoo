@@ -59,5 +59,9 @@ echo "Database Type: PostgresSQL" >> /root/PLUGIN_INFO
 echo "Database Name: $DB" >> /root/PLUGIN_INFO
 echo "Database User: $DB_USER" >> /root/PLUGIN_INFO
 echo "Database Password: $DB_PASS" >> /root/PLUGIN_INFO
+echo "" >> /root/PLUGIN_INFO
+echo "Web login for the first time is" >> /root/PLUGIN_INFO
+echo "User: admin" >> /root/PLUGIN_INFO
+echo "Password: Admin" >> /root/PLUGIN_INFO
 
 echo "Done"
