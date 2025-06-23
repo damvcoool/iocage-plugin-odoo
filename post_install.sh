@@ -1,69 +1,88 @@
 #!/bin/sh
+#
+# TrueNAS plugin – first-time install of Odoo 18
+#
 
-# Defining config settings
+set -e        # Stop on first error
+umask 022
+
+### 0.  Tweak these if you like
 DB_USER="odoouser"
-DB="odoodb"
+DB_NAME="odoodb"
 DB_HOST="localhost"
 DB_PORT="5432"
-WEB_DB_MANAGER = false
-ODOO_ADDONS="/usr/local/lib/python3.11/site-packages/odoo/addons/"
+WEB_DB_MANAGER=false          # Hide the “Database Manager” screen
+ODOO_ADDONS="/usr/local/lib/python3.11/site-packages/odoo/addons"
 
-sysrc postgresql_enable=YES 2>/dev/null
+### 1.  Enable services so they start on boot
+sysrc -q postgresql_enable=YES
+sysrc -q odoo_enable=YES
+sysrc -q odoo_database="${DB_NAME}"
+sysrc -q odoo_datadir="/var/db/odoo"
 
-sysrc odoo_enable=YES 2>/dev/null
+chmod 777 /tmp                # Odoo writes temp files here at install
 
-sysrc odoo_database="odoodb" 2>/dev/null
-sysrc odoo_datadir="/var/db/odoo" 2>/dev/null
-
-
-
-chmod 777 /tmp
-# Start the service
-service postgresql initdb 2>/dev/null
+### 2.  Bootstrap PostgreSQL
+service postgresql initdb
 sleep 5
-service postgresql start 2>/dev/null
+service postgresql start
 sleep 5
 
-
-# Save the config values
-echo "$DB" > /root/dbname
-echo "$DB_USER" > /root/dbuser
+# Generate strong random passwords
 export LC_ALL=C
-cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1 > /root/dbpassword
-cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 16 | head -n 1 > /root/adimpassword
-DB_PASS=`cat /root/dbpassword`
-PASS=`cat /root/adimpassword`
+DB_PASS=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
+ADMIN_PASS=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 
-# create db user
-psql -d template1 -U postgres -c "CREATE USER ${DB_USER} CREATEDB SUPERUSER;" 2>/dev/null
-# Set a password on the postgres account
-psql -d template1 -U postgres -c "ALTER USER ${DB_USER} IDENTIFIED WITH caching_sha2_password BY '${DB_PASS}';" 2>/dev/null
+# Save for the admin’s reference
+printf '%s\n' "$DB_NAME"       > /root/dbname
+printf '%s\n' "$DB_USER"       > /root/dbuser
+printf '%s\n' "$DB_PASS"       > /root/dbpassword
+printf '%s\n' "$ADMIN_PASS"    > /root/adminpassword
 
-#Setting up odoo.conf
-echo "[options]" > /root/odoo.conf
-echo "admin_passwd = $PASS" >> /root/odoo.conf
-echo "db_host = $DB_HOST" >> /root/odoo.conf
-echo "db_port = $DB_PORT" >> /root/odoo.conf
-echo "db_user =  $DB_USER" >> /root/odoo.conf
-echo "db_password = $DB_PASS" >> /root/odoo.conf
-echo "list_db = $WEB_DB_MANAGER" >> /root/odoo.conf
-echo ";addons_path = $ODOO_ADDONS" >> /root/odoo.conf
+# Create DB role & database
+su - postgres -c "createuser ${DB_USER} -SRD" || true
+su - postgres -c "psql -c \"ALTER USER ${DB_USER} WITH PASSWORD '${DB_PASS}';\""
+su - postgres -c "createdb -O ${DB_USER} ${DB_NAME}" || true
 
-# Backup original config and move new one
-mv /usr/local/etc/odoo/odoo.conf /usr/local/etc/odoo/odoo.conf.orig
-mv /root/odoo.conf /usr/local/etc/odoo/odoo.conf
+### 3.  Write /usr/local/etc/odoo/odoo.conf
+ODOO_CONF="/usr/local/etc/odoo/odoo.conf"
+[ -f "$ODOO_CONF" ] && mv "$ODOO_CONF" "${ODOO_CONF}.orig"
 
+cat > "$ODOO_CONF" <<EOF
+[options]
+admin_passwd = $ADMIN_PASS
+db_host      = $DB_HOST
+db_port      = $DB_PORT
+db_user      = $DB_USER
+db_password  = $DB_PASS
+list_db      = $WEB_DB_MANAGER
+addons_path  = $ODOO_ADDONS
+xmlrpc_port  = 8069
+logfile      = /var/log/odoo.log
+EOF
+
+touch /var/log/odoo.log
+chmod 644 /var/log/odoo.log
+
+### 4.  FIRST-RUN INITIALISATION
+# FreeBSD’s rc.d script exposes “initdb” which runs Odoo with “-i all”
+# and creates the initial metadata tables before daemonising.
 service odoo initdb
 
-# Save database information
-echo "Admin Password: $PASS" >> /root/PLUGIN_INFO
-echo "Database Type: PostgresSQL" >> /root/PLUGIN_INFO
-echo "Database Name: $DB" >> /root/PLUGIN_INFO
-echo "Database User: $DB_USER" >> /root/PLUGIN_INFO
-echo "Database Password: $DB_PASS" >> /root/PLUGIN_INFO
-echo "" >> /root/PLUGIN_INFO
-echo "Web login for the first time is" >> /root/PLUGIN_INFO
-echo "User: admin" >> /root/PLUGIN_INFO
-echo "Password: Admin" >> /root/PLUGIN_INFO
+### 5.  Human-readable cheat-sheet
+cat > /root/PLUGIN_INFO <<EOF
+====  Odoo TrueNAS Plugin  =======================================
 
-echo "Done"
+Admin password    : $ADMIN_PASS
+Database name     : $DB_NAME
+Database user     : $DB_USER
+Database password : $DB_PASS
+
+Web login URL     : http://$(cat /etc/hosts | awk '/^::1/ {next} {print $1; exit}') :8069
+Default UI login  : user 'admin' – set a password at first login.
+
+The Odoo rc.d script supports:  start | stop | restart | status | initdb
+==================================================================
+EOF
+
+echo ">>> Odoo installation complete."
