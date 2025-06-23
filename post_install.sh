@@ -61,6 +61,10 @@ xmlrpc_port  = 8069
 logfile      = /var/log/odoo.log
 EOF
 
+# Fix issue with werkzeug 3.1.3, and installing werkzeug 2.x
+pip uninstall werkzeug -y
+pip install "werkzeug<3.0"
+
 touch /var/log/odoo.log
 chmod 644 /var/log/odoo.log
 
