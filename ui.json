@@ -1,3 +1,6 @@
 {
-	"adminportal": "http://%%IP%%:8069"
+  "adminportal": "http://%%IP%%:8069",
+  "name": "Odoo",
+  "version": "18.0",
+  "icon": "https://raw.githubusercontent.com/odoo/odoo/master/addons/web/static/img/odoo-icon-192x192.png"
 }
