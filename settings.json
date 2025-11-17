@@ -6,19 +6,25 @@
 		"dbname": {
 			"type": "string",
 			"name": "Database Name",
-			"description": "Database to use for Gitea setup",
+			"description": "Database to use for Odoo setup",
 			"readonly": true
 		},
 		"dbuser": {
 			"type": "string",
 			"name": "Database Username",
-			"description": "Username to use for Gitea Database setup",
+			"description": "Username to use for Odoo Database setup",
 			"readonly": true
 		},
 		"dbpassword": {
 			"type": "string",
 			"name": "Database Password",
-			"description": "Password to use for Gitea Database setup",
+			"description": "Password to use for Odoo Database setup",
+			"readonly": true
+		},
+		"adminpassword": {
+			"type": "string",
+			"name": "Admin Password",
+			"description": "Admin password for Odoo web interface",
 			"readonly": true
 		}
 	}

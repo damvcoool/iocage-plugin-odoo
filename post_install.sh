@@ -11,7 +11,7 @@ DB_USER="odoouser"
 DB_NAME="odoodb"
 DB_HOST="localhost"
 DB_PORT="5432"
-WEB_DB_MANAGER=false          # Hide the “Database Manager” screen
+WEB_DB_MANAGER=false          # Hide the "Database Manager" screen
 ODOO_ADDONS="/usr/local/lib/python3.11/site-packages/odoo/addons"
 
 ### 1.  Enable services so they start on boot
@@ -33,11 +33,14 @@ export LC_ALL=C
 DB_PASS=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 ADMIN_PASS=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 16)
 
-# Save for the admin’s reference
+# Save for the admin's reference
 printf '%s\n' "$DB_NAME"       > /root/dbname
 printf '%s\n' "$DB_USER"       > /root/dbuser
 printf '%s\n' "$DB_PASS"       > /root/dbpassword
 printf '%s\n' "$ADMIN_PASS"    > /root/adminpassword
+
+# Secure credential files
+chmod 600 /root/dbname /root/dbuser /root/dbpassword /root/adminpassword
 
 # Create DB role & database
 su - postgres -c "createuser ${DB_USER} -SRD" || true
@@ -62,14 +65,14 @@ logfile      = /var/log/odoo.log
 EOF
 
 # Fix issue with werkzeug 3.1.3, and installing werkzeug 2.x
-pip uninstall werkzeug -y
-pip install "werkzeug<3.0"
+pip uninstall werkzeug -y || echo "Warning: werkzeug uninstall failed"
+pip install "werkzeug<3.0" || { echo "Error: Failed to install werkzeug"; exit 1; }
 
 touch /var/log/odoo.log
 chmod 644 /var/log/odoo.log
 
 ### 4.  FIRST-RUN INITIALISATION
-# FreeBSD’s rc.d script exposes “initdb” which runs Odoo with “-i all”
+# FreeBSD's rc.d script exposes "initdb" which runs Odoo with "-i all"
 # and creates the initial metadata tables before daemonising.
 service odoo initdb
 
@@ -82,11 +85,14 @@ Database name     : $DB_NAME
 Database user     : $DB_USER
 Database password : $DB_PASS
 
-Web login URL     : http://$(cat /etc/hosts | awk '/^::1/ {next} {print $1; exit}') :8069
+Web login URL     : http://$(awk '/^::1/ {next} {print $1; exit}' /etc/hosts):8069
 Default UI login  : user 'admin' – set a password at first login.
 
 The Odoo rc.d script supports:  start | stop | restart | status | initdb
 ==================================================================
 EOF
+
+# Secure the info file
+chmod 600 /root/PLUGIN_INFO
 
 echo ">>> Odoo installation complete."
