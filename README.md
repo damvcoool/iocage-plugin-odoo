@@ -2,6 +2,8 @@
 
 Unofficial [FreeCORE](https://github.com/freecore-project/) (TrueNAS CORE replacement) plugin to install [Odoo 18](https://www.odoo.com/).
 
+> **Status**: Personal plugin — not affiliated with or supported by Nextcloud GmbH or iXsystems.
+
 ---
 
 ## Installation
@@ -13,6 +15,7 @@ BRANCH=master
 JSON=/tmp/odoo.json
 
 fetch -o "$JSON" "https://raw.githubusercontent.com/damvcoool/iocage-plugin-index/${BRANCH}/odoo.json"
+
 iocage fetch -P "$JSON" --branch "$BRANCH" -n Odoo
 ```
 
