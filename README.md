@@ -144,7 +144,7 @@ tail -f /var/db/postgres/data15/log/postgresql-*.log
 - **Odoo Version**: 18.0
 - **FreeBSD**: Compatible with FreeCORE (FreeBSD-based)
 - **PostgreSQL**: Version 15+
-- **Python**: 3.11
+- **Python**: 3.12
 
 ---
 
